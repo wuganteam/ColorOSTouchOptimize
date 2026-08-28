@@ -1,7 +1,7 @@
 id=ColorOSTouchOptimize
 name=ColorOS 触控/采样率优化[正式版]
-version=v1.0
-versionCode=100
+version=v1.1
+versionCode=110
 author=小鸟游一濑
-description=🗡️ 基于 Go 静态二进制的 ColorOS 触控采样率动态调度引擎。前台 Activity 级精准识别游戏，毫秒级响应；节点/采样率全配置化，支持多应用独立策略；内置守护自愈、写入熔断与日志分级，极致游戏手感与日用续航兼得
+description=🗡️ 基于 Go 静态二进制的 ColorOS 触控采样率动态调度引擎。前台 Activity 级精准识别游戏，毫秒级响应；采样率直接写 Hz 数值，支持多应用独立策略；内置保活对抗（防系统覆盖）、stop horae、守护自愈、写入熔断与日志分级，极致游戏手感与日用续航兼得
 updateJson=https://raw.githubusercontent.com/WuGanTeam/ColorOSTouchOptimize/main/update.json
