@@ -164,7 +164,7 @@ func parseConfig() {
 	nc.TouchNode = 182
 	nc.GameRate = 360
 	nc.DefaultRate = 360
-	nc.StopHorae = true
+	nc.StopHorae = false
 
 	pkgList := []string{}
 
