@@ -84,30 +84,12 @@ else
 fi
 
 # 2. 基于 Unity/UE4 引擎检测第三方应用（指定用户范围）
-echo "  >> 扫描 Unity/UE4 引擎游戏..."
-pm list packages -3 --user "$CURRENT_USER" 2>/dev/null | cut -f2 -d ':' | while read pkg; do
-    if grep -qx "$pkg" "$TEMP_LIST" 2>/dev/null; then
-        continue
-    fi
-    path=$(pm path "$pkg" --user "$CURRENT_USER" 2>/dev/null | cut -f2 -d ':')
-    [ -z "$path" ] && continue
-    dir=${path%/*}
-    found=0
-    for sub in arm64 arm; do
-        libs="$dir/lib/$sub"
-        if [ -d "$libs" ]; then
-            if ls "$libs" 2>/dev/null | grep -qE '(libunity.so|libUE3.so|libUE4.so|libUnreal.so|libue.so)'; then
-                found=1
-                break
-            fi
-        fi
-    done
-    if [ $found -eq 1 ]; then
-        echo "  + $pkg"
-        echo "$pkg" >> "$TEMP_LIST"
-    fi
+# 2. 添加内置默认游戏列表（确保开箱即用）
+default_games="com.tencent.tmgp.sgame com.tencent.tmgp.pubgmhd com.miHoYo.Yuanshen com.miHoYo.GenshinImpact com.miHoYo.hkrpg com.kurogame.mingchao com.tencent.tmgp.dfm com.tencent.tmgp.cf com.tencent.tmgp.cod com.tencent.lolm com.netease.dwrg com.netease.l22 com.tencent.ig com.pubg.krmobile"
+for g in $default_games; do
+    echo "$g" >> "$TEMP_LIST"
 done
-
+echo "  >> 已添加默认游戏列表"
 # 去重排序
 if [ -s "$TEMP_LIST" ]; then
     sort -u "$TEMP_LIST" -o "$TEMP_LIST"
@@ -119,8 +101,14 @@ else
 fi
 
 # ---------- 处理 /data/games.conf ----------
-if [ ! -f "$GAMES_CONF" ]; then
+# v1.1fix：直接覆盖配置文件，确保包含最新配置项（stop_horae），避免老配置缺失
+# 注意：覆盖前备份用户旧配置
+if [ -f "$GAMES_CONF" ]; then
+    cp "$GAMES_CONF" "$GAMES_CONF.bak" 2>/dev/null
+    echo "- 已备份旧配置为 $GAMES_CONF.bak，正在重新生成配置..."
+else
     echo "- 创建配置文件 /data/games.conf"
+fi
     cat > "$GAMES_CONF" <<'EOF'
 # ============================================
 # ColorOS 触控优化模块 - 游戏列表与配置
@@ -161,24 +149,6 @@ EOF
 # com.miHoYo.hkrpg rate=8         # 崩坏：星穹铁道（独立采样率示例）
 EOF
     echo "✅ 已生成配置文件，包含自动扫描到的游戏"
-else
-    # 文件已存在，只追加未收录的新游戏（保留用户原有内容）
-    echo "- 配置文件已存在，将追加新扫描到的游戏（去重）"
-    existing_pkgs=$(grep -v '^#' "$GAMES_CONF" | grep -v '^config' | grep -v '^[[:space:]]*$')
-    new_added=0
-    while read -r pkg; do
-        if [ -z "$pkg" ]; then continue; fi
-        if ! echo "$existing_pkgs" | grep -qx "$pkg"; then
-            echo "$pkg" >> "$GAMES_CONF"
-            new_added=$((new_added + 1))
-        fi
-    done < "$TEMP_LIST"
-    if [ $new_added -gt 0 ]; then
-        echo "✅ 追加了 $new_added 个新游戏到配置文件"
-    else
-        echo "✅ 没有新游戏需要添加"
-    fi
-fi
 
 # 清理临时文件
 rm -f "$TEMP_LIST"
